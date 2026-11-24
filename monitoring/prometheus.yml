@@ -1,0 +1,41 @@
+
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+
+  # Monitoreo del primer backend
+  - job_name: "taskflow-backend1"
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - "backend1:5000"
+
+  # Monitoreo del segundo backend
+  - job_name: "taskflow-backend2"
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - "backend2:5000"
+
+  # Monitoreo del tercer backend
+  - job_name: "taskflow-backend3"
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - "backend3:5000"
+
+  # Monitoreo de Nginx mediante su exporter
+  - job_name: "taskflow-nginx"
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - "nginx-exporter:9113"
+
+  # Monitoreo de recursos de los contenedores
+  - job_name: "taskflow-cadvisor"
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - "cadvisor:8080"

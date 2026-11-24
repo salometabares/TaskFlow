@@ -1,0 +1,451 @@
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>TaskFlow | Gestión de tareas</title>
+
+    <link rel="stylesheet" href="/static/styles.css">
+
+    <script src="/static/script.js" defer></script>
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <!-- BARRA LATERAL -->
+        <aside class="sidebar">
+
+            <div class="brand">
+                <div class="brand-icon">T</div>
+                <h2>TaskFlow</h2>
+            </div>
+
+            <div class="sidebar-section">
+                <span class="sidebar-label">MENÚ PRINCIPAL</span>
+
+                <nav class="navigation">
+
+                    <button class="nav-item active" data-view="dashboard">
+                        <span class="nav-icon">▦</span>
+                        <span>Panel principal</span>
+                    </button>
+
+                    <button class="nav-item" data-view="tasks">
+                        <span class="nav-icon">☷</span>
+                        <span>Todas las tareas</span>
+                    </button>
+
+                    <button class="nav-item" data-view="tasks" data-filter="pendiente">
+                        <span class="nav-icon">◷</span>
+                        <span>Pendientes</span>
+                    </button>
+
+                    <button class="nav-item" data-view="tasks" data-filter="completada">
+                        <span class="nav-icon">✓</span>
+                        <span>Completadas</span>
+                    </button>
+
+                </nav>
+            </div>
+
+            <div class="sidebar-bottom">
+                <div class="sidebar-info">
+                    <div class="info-icon">✦</div>
+                    <div>
+                        <strong>Mantén el enfoque</strong>
+                        <p>Organiza tus actividades y alcanza tus objetivos.</p>
+                    </div>
+                </div>
+
+                <div class="sidebar-footer">
+                    <div class="user-avatar">TF</div>
+                    <div class="user-info">
+                        <strong>Mi espacio</strong>
+                        <span>Cuenta personal</span>
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="main-content">
+
+            <!-- ENCABEZADO -->
+            <header class="topbar">
+
+                <div class="breadcrumb">
+                    <span>Workspace</span>
+                    <span>/</span>
+                    <strong>Panel principal</strong>
+                </div>
+
+                <div class="topbar-right">
+                    <span class="system-status">
+                        <span class="status-dot"></span>
+                        Sistema activo
+                    </span>
+
+                    <div class="topbar-avatar">TF</div>
+                </div>
+                <div class="topbar-right">
+                    <span class="system-status">
+                        <span class="status-dot"></span>
+                        Sistema activo
+                    </span>
+
+                    <span id="instanciaBackend" class="backend-status">
+                        Consultando instancia...
+                    </span>
+
+                    <div class="topbar-avatar">TF</div>
+                </div>
+
+
+            </header>
+
+
+            <!-- CONTENIDO -->
+            <section class="dashboard">
+
+                <div class="welcome-section">
+
+                    <div>
+                        <span class="welcome-label">TU ESPACIO DE TRABAJO</span>
+
+                        <h1>Mis tareas</h1>
+
+                        <p>
+                            Organiza tus actividades, consulta tu progreso y mantén el control de tus objetivos.
+                        </p>
+                    </div>
+
+                    <button class="primary-button" id="btnNuevaTarea">
+                        <span>+</span>
+                        Nueva tarea
+                    </button>
+
+                </div>
+
+
+                <!-- PANEL PRINCIPAL: ESTADÍSTICAS Y RESUMEN -->
+                <section class="overview-section" id="overviewSection">
+
+                    <!-- TARJETAS DE ESTADÍSTICAS -->
+                    <section class="statistics">
+
+                    <article class="stat-card">
+
+                        <div class="stat-header">
+                            <span>Total de tareas</span>
+                            <div class="stat-icon purple">▦</div>
+                        </div>
+
+                        <h2 id="totalTareas">0</h2>
+
+                        <p>Tareas registradas</p>
+
+                    </article>
+
+
+                    <article class="stat-card">
+
+                        <div class="stat-header">
+                            <span>Pendientes</span>
+                            <div class="stat-icon orange">◷</div>
+                        </div>
+
+                        <h2 id="tareasPendientes">0</h2>
+
+                        <p>Por completar</p>
+
+                    </article>
+
+
+                    <article class="stat-card">
+
+                        <div class="stat-header">
+                            <span>Completadas</span>
+                            <div class="stat-icon green">✓</div>
+                        </div>
+
+                        <h2 id="tareasCompletadas">0</h2>
+
+                        <p>Objetivos alcanzados</p>
+
+                    </article>
+
+
+                    <article class="stat-card">
+
+                        <div class="stat-header">
+                            <span>Progreso</span>
+                            <div class="stat-icon blue">↗</div>
+                        </div>
+
+                        <h2 id="progresoTareas">0%</h2>
+
+                        <p>De tareas completadas</p>
+
+                    </article>
+
+                </section>
+
+
+                    <!-- RESUMEN DEL DASHBOARD -->
+                    <div class="overview-grid">
+
+                        <article class="overview-card">
+                            <div class="overview-card-header">
+                                <div>
+                                    <h2>Actividad reciente</h2>
+                                    <p>Las últimas tareas que has registrado</p>
+                                </div>
+                                <div class="overview-icon">◷</div>
+                            </div>
+
+                            <div id="tareasRecientes" class="overview-list">
+                                <p class="loading-message">Cargando actividades...</p>
+                            </div>
+
+                            <button type="button" class="text-button" id="verTodasRecientes">
+                                Ver todas las tareas →
+                            </button>
+                        </article>
+
+                        <article class="overview-card">
+                            <div class="overview-card-header">
+                                <div>
+                                    <h2>Prioridad alta</h2>
+                                    <p>Actividades que requieren atención</p>
+                                </div>
+                                <div class="overview-icon priority-icon">!</div>
+                            </div>
+
+                            <div id="tareasPrioritarias" class="overview-list">
+                                <p class="loading-message">Cargando prioridades...</p>
+                            </div>
+                        </article>
+
+                    </div>
+
+                    <article class="overview-card progress-card">
+                        <div class="overview-card-header">
+                            <div>
+                                <h2>Tu progreso</h2>
+                                <p>Resumen general de tus objetivos</p>
+                            </div>
+                            <div class="overview-icon progress-icon">↗</div>
+                        </div>
+
+                        <div class="progress-content">
+                            <div class="progress-track">
+                                <div id="barraProgreso" class="progress-fill"></div>
+                            </div>
+
+                            <div class="progress-information">
+                                <span id="textoProgreso">0% completado</span>
+                                <span id="resumenProgreso">0 de 0 tareas</span>
+                            </div>
+                        </div>
+                    </article>
+
+                </section>
+
+
+                <!-- LISTADO DE TAREAS -->
+                <section class="tasks-section hidden" id="tasksSection">
+
+                    <div class="tasks-header">
+
+                        <div>
+                            <h2>Mis actividades</h2>
+                            <p>Administra y organiza tus tareas.</p>
+                        </div>
+
+                        <div class="task-actions">
+
+                            <div class="search-container">
+                                <span>⌕</span>
+                                <input
+                                    type="text"
+                                    id="buscarTarea"
+                                    placeholder="Buscar tarea..."
+                                >
+                            </div>
+
+                            <select id="filtroPrioridad">
+                                <option value="todas">Todas las prioridades</option>
+                                <option value="alta">Prioridad alta</option>
+                                <option value="media">Prioridad media</option>
+                                <option value="baja">Prioridad baja</option>
+                            </select>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- FILTROS POR ESTADO -->
+                    <div class="task-tabs">
+
+                        <button class="tab-button active" data-filter="todas">
+                            Todas
+                        </button>
+
+                        <button class="tab-button" data-filter="pendiente">
+                            Pendientes
+                        </button>
+
+                        <button class="tab-button" data-filter="completada">
+                            Completadas
+                        </button>
+
+                    </div>
+
+
+                    <!-- CONTENEDOR DINÁMICO -->
+                    <div class="task-list" id="listaTareas">
+
+                        <div class="loading-message">
+                            Cargando tareas...
+                        </div>
+
+                    </div>
+
+
+                    <!-- PIE DEL LISTADO -->
+                    <div class="tasks-footer">
+                        <span id="contadorTareas">
+                            Mostrando tareas
+                        </span>
+                    </div>
+
+                </section>
+
+            </section>
+
+        </main>
+
+    </div>
+
+
+    <!-- MODAL PARA CREAR Y EDITAR TAREAS -->
+    <div class="modal-overlay" id="modalTarea">
+
+        <div class="modal">
+
+            <div class="modal-header">
+
+                <div>
+                    <span class="modal-label">GESTIÓN DE ACTIVIDADES</span>
+                    <h2 id="tituloModal">Nueva tarea</h2>
+                </div>
+
+                <button class="close-button" id="btnCerrarModal">
+                    &times;
+                </button>
+
+            </div>
+
+
+            <form id="formularioTarea">
+
+                <div class="form-group">
+
+                    <label for="titulo">Título de la tarea</label>
+
+                    <input
+                        type="text"
+                        id="titulo"
+                        name="titulo"
+                        placeholder="Ej. Estudiar para el parcial"
+                        maxlength="150"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="descripcion">Descripción</label>
+
+                    <textarea
+                        id="descripcion"
+                        name="descripcion"
+                        rows="4"
+                        placeholder="Describe brevemente la actividad..."
+                    ></textarea>
+
+                </div>
+
+
+                <div class="form-row">
+
+                    <div class="form-group">
+
+                        <label for="prioridad">Prioridad</label>
+
+                        <select id="prioridad" name="prioridad">
+
+                            <option value="baja">Baja</option>
+                            <option value="media" selected>Media</option>
+                            <option value="alta">Alta</option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="estado">Estado</label>
+
+                        <select id="estado" name="estado">
+
+                            <option value="pendiente">Pendiente</option>
+                            <option value="completada">Completada</option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+
+                <div class="modal-actions">
+
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        id="btnCancelar"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button type="submit" class="primary-button">
+                        Guardar tarea
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- NOTIFICACIONES -->
+    <div id="notificacion" class="notification"></div>
+
+</body>
+
+</html>

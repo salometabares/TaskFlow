@@ -1,0 +1,16 @@
+# Entornos y secretos
+.env
+.env.*
+!.env.example
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Editores y sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,224 @@
+
+services:
+
+  # BASE DE DATOS
+  database:
+    image: mariadb:10.11
+    container_name: taskflow_database
+    restart: unless-stopped
+
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?Define MARIADB_ROOT_PASSWORD en .env}
+      MARIADB_DATABASE: taskflow
+      MARIADB_USER: ${MARIADB_USER:-taskflow}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:?Define MARIADB_PASSWORD en .env}
+
+    ports:
+      - "3307:3306"
+
+    volumes:
+      - taskflow_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mariadb-admin ping -h 127.0.0.1 -uroot -p$$MARIADB_ROOT_PASSWORD
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    
+    networks:
+      - taskflow_network
+
+
+  # BACKEND 1
+  backend1:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+
+    restart: unless-stopped
+
+    environment:
+      DB_HOST: database
+      DB_PORT: 3306
+      DB_USER: ${MARIADB_USER:-taskflow}
+      DB_PASSWORD: ${MARIADB_PASSWORD:?Define MARIADB_PASSWORD en .env}
+      DB_NAME: taskflow
+      INSTANCE_ID: backend-1
+
+    depends_on:
+      database:
+        condition: service_healthy
+
+    networks:
+      - taskflow_network
+
+
+  # BACKEND 2
+  backend2:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+
+    restart: unless-stopped
+
+    environment:
+      DB_HOST: database
+      DB_PORT: 3306
+      DB_USER: ${MARIADB_USER:-taskflow}
+      DB_PASSWORD: ${MARIADB_PASSWORD:?Define MARIADB_PASSWORD en .env}
+      DB_NAME: taskflow
+      INSTANCE_ID: backend-2
+
+    depends_on:
+      database:
+        condition: service_healthy
+
+    networks:
+      - taskflow_network
+
+  # BACKEND 3
+  backend3:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+
+    restart: unless-stopped
+
+    environment:
+      DB_HOST: database
+      DB_PORT: 3306
+      DB_USER: ${MARIADB_USER:-taskflow}
+      DB_PASSWORD: ${MARIADB_PASSWORD:?Define MARIADB_PASSWORD en .env}
+      DB_NAME: taskflow
+      INSTANCE_ID: backend-3
+
+    depends_on:
+      database:
+        condition: service_healthy
+
+    networks:
+      - taskflow_network
+
+  # BALANCEADOR NGINX
+  nginx:
+    image: nginx:alpine
+    container_name: taskflow_nginx
+    restart: unless-stopped
+
+    ports:
+      - "8080:80"
+
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
+    depends_on:
+      - backend1
+      - backend2
+      - backend3
+
+    networks:
+      - taskflow_network
+
+
+  # NGINX PROMETHEUS EXPORTER
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:1.4.2
+    container_name: taskflow_nginx_exporter
+    restart: unless-stopped
+
+    command:
+      - "--nginx.scrape-uri=http://nginx:80/stub_status"
+
+    ports:
+      - "9113:9113"
+
+    depends_on:
+      - nginx
+
+    networks:
+      - taskflow_network
+
+
+  # CADVISOR - MONITOREO DE CONTENEDORES
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: taskflow_cadvisor
+    restart: unless-stopped
+
+    privileged: true
+
+    ports:
+      - "8081:8080"
+
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+
+    networks:
+      - taskflow_network
+
+
+  # PROMETHEUS
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: taskflow_prometheus
+    restart: unless-stopped
+
+    ports:
+      - "9090:9090"
+
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+
+    depends_on:
+      - backend1
+      - backend2
+      - backend3
+      - nginx-exporter
+      - cadvisor
+
+    networks:
+      - taskflow_network
+
+  # GRAFANA
+  grafana:
+    image: grafana/grafana:latest
+    container_name: taskflow_grafana
+    restart: unless-stopped
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Define GRAFANA_ADMIN_PASSWORD en .env}
+
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+    depends_on:
+      - prometheus
+    
+    networks:
+      - taskflow_network
+
+
+volumes:
+  taskflow_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  taskflow_network:
+    driver: bridge
